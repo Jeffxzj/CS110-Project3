@@ -60,13 +60,13 @@ typedef struct point_t
         x = xi;
         y = yi;
     };
-
+///*
     void reset_zero(){
         sum_x = 0;
         sum_y = 0;
         count = 0;
     }
-
+//*/
 } point_t;
 
 /* Overload `<<` for prettier printing. */
