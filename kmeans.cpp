@@ -166,16 +166,16 @@ kmeans (point_t * const data, point_t * const mean, color_t * const coloring,
     
     do {
         converge = true;
-       
+                   // double min_dist = std::numeric_limits<double>::infinity();
+            double dist;
         /* Compute the color of each point. A point gets assigned to the
            cluster with the nearest center point. */
         #pragma omp parallel
         {
         #pragma omp for
-        for (int i = 0; i < pn; i++) {
+        for (int i = 0; i < pn; ++i) {
             color_t new_color = cn;
             double min_dist = std::numeric_limits<double>::infinity();
-            double dist;
             #pragma omp simd reduction(+: dist)
             for (color_t c = 0; c < cn; ++c) {
                 dist = pow((data[i].x - mean[c].x), 2) + pow((data[i].y - mean[c].y), 2);
@@ -192,9 +192,9 @@ kmeans (point_t * const data, point_t * const mean, color_t * const coloring,
             }
         }
         }
-
-        for (int i = 0; i < pn; i++) {
-            color_t c = coloring[i];
+        color_t c;
+        for (int i = 0; i < pn; ++i) {
+            c = coloring[i];
             mean[c].sum_x += data[i].x;
             mean[c].sum_y += data[i].y;
             mean[c].count++;
