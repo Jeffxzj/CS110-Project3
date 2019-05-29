@@ -151,46 +151,38 @@ kmeans (point_t * const data, point_t * const mean, color_t * const coloring,
         const int pn, const int cn)
 {
     bool converge = true;
-/*
-    double *mean_sumx = new double[cn];
-    double *mean_sumy = new double[cn];
-    double *mean_count = new double[cn];
-    std::memset(mean_sumx,0,cn);
-    std::memset(mean_sumy,0,cn);
-    std::memset(mean_count,0,cn);
-    
-*/    
 
     /* Loop through the following two stages until no point changes its color
        during an iteration. */
     
     do {
         converge = true;
-                   // double min_dist = std::numeric_limits<double>::infinity();
-            double dist;
         /* Compute the color of each point. A point gets assigned to the
            cluster with the nearest center point. */
         #pragma omp parallel
         {
-        #pragma omp for
-        for (int i = 0; i < pn; ++i) {
-            color_t new_color = cn;
-            double min_dist = std::numeric_limits<double>::infinity();
-            #pragma omp simd reduction(+: dist)
-            for (color_t c = 0; c < cn; ++c) {
-                dist = pow((data[i].x - mean[c].x), 2) + pow((data[i].y - mean[c].y), 2);
-                
-                if (dist < min_dist) {
-                    min_dist = dist;
-                    new_color = c;
+            color_t new_color;
+            double min_dist, dist;
+            #pragma omp for
+            for (int i = 0; i < pn; ++i) {
+                new_color = cn;
+                min_dist = std::numeric_limits<double>::infinity();
+                #pragma omp simd
+                for (color_t c = 0; c < cn; ++c) {
+                    
+                    dist = pow((data[i].x - mean[c].x), 2) + pow((data[i].y - mean[c].y), 2);
+
+                    if (dist < min_dist) {
+                        min_dist = dist;
+                        new_color = c;
+                    }
+                }
+
+                if (coloring[i] != new_color) {
+                    coloring[i] = new_color;
+                    converge = false;
                 }
             }
-
-            if (coloring[i] != new_color) {
-                coloring[i] = new_color;
-                converge = false;
-            }
-        }
         }
         color_t c;
         for (int i = 0; i < pn; ++i) {
@@ -199,36 +191,9 @@ kmeans (point_t * const data, point_t * const mean, color_t * const coloring,
             mean[c].sum_y += data[i].y;
             mean[c].count++;
         }
-/*
-        #pragma omp parallel
-        {
-            double *mean_sumx_pri = new double[cn];
-            double *mean_sumy_pri = new double[cn];
-            double *mean_count_pri = new double[cn];
-            #pragma omp for
-            for (int i=0; i<pn; i++) {
-                color_t c = coloring[i];
-                mean_sumx_pri[c] += data[i].x;
-                mean_sumy_pri[c] += data[i].y;
-                mean_count_pri[c]++;
-            }
-            #pragma omp critical
-            {
-                for (int i=0; i<cn; ++i) {
-                    mean_sumx[i] = mean_sumx_pri[i];
-                    mean_sumy[i] = mean_sumy_pri[i];
-                    mean_count[i] = mean_count_pri[i];
-                }
-                delete[] mean_sumx_pri;
-                delete[] mean_sumy_pri;
-                delete[] mean_count_pri;
-            }
-           
-        }
-*/
+
         for (int i = 0; i < cn; ++i) {
-            int count = mean[i].count;
-            mean[i].setXY(mean[i].sum_x / count, mean[i].sum_y / count);
+            mean[i].setXY(mean[i].sum_x / mean[i].count, mean[i].sum_y / mean[i].count);
             mean[i].reset_zero();
         }
 

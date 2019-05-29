@@ -9,7 +9,7 @@
 #
 
 CC=g++
-CFLAGS=-Wpedantic -Wall -Wextra -Werror -O2 -std=c++11 -fopenmp -march=native
+CFLAGS=-Wpedantic -Wall -Wextra -Werror -Ofast -std=c++11 -fopenmp -march=native -mtune=intel -frename-registers -fno-signed-zeros
 LDFLAGS=-fopenmp
 
 
@@ -22,6 +22,8 @@ kmeans: kmeans.cpp kmeans.h
 
 clean:
 	rm -f kmeans
+rmout:
+	rm -f big.txt
 
 gen: generate.py
 	python3 generate.py ${FILE}
